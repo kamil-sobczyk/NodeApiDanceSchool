@@ -6,7 +6,8 @@ const articleSchema = new mongoose.Schema({
   content: String,
   footer: String,
   pic: String,
-  date: String
+  date: String,
+  publishedBy: String
 });
 
 module.exports = articleSchema;

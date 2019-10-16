@@ -36,7 +36,7 @@ const appRouter = app => {
   });
 
   app
-    .route("/blog")
+    .route("/aricles")
     .get((req, res) => {
       const articles = res.articles;
     })
