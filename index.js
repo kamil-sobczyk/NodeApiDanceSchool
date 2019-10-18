@@ -1,6 +1,23 @@
 const mongoose = require("mongoose");
+const multer = require("multer");
+const cloudinary = require("cloudinary");
+const cloudinaryStorage = require("multer-storage-cloudinary");
 const articleSchema = require("./data/models/article");
 const {mongoUrl} = require("./config");
+
+cloudinary.config({
+  cloud_name: process.env.cloudName,
+  api_key: process.env.apiKey,
+  api_secret: process.env.apiSecret
+});
+
+const storage = cloudinaryStorage({
+  cloudinary: cloudinary,
+  folder: "images",
+  allowedFormats: ["jpg", "png"],
+  transformation: [{width: 500, height: 500, crop: "limit"}]
+});
+const parser = multer({storage: storage});
 
 const url = mongoUrl;
 
@@ -45,6 +62,16 @@ const appRouter = app => {
     })
     .put((req, res) => {})
     .delete((req, res) => {});
+
+  app.route("/api/images", parser.single("image")).post((req, res) => {
+    console.log(req.file); // to see what is returned to you
+    const image = {};
+    image.url = req.file.url;
+    image.id = req.file.public_id;
+    Image.create(image) // save image information in database
+      .then(newImage => res.json(newImage))
+      .catch(err => console.log(err));
+  });
 };
 
 module.exports = appRouter;
