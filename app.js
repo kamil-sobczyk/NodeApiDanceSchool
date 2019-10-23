@@ -1,6 +1,7 @@
 require("rootpath")();
 const express = require("express");
 const bodyParser = require("body-parser");
+var fs = require("fs");
 const routes = require("./index.js");
 const {port} = require("./config");
 const app = express();
