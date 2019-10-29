@@ -1,41 +1,7 @@
 const mongoose = require('mongoose');
-const multer = require('multer');
-const cloudinary = require('cloudinary');
-const cloudinaryStorage = require('multer-storage-cloudinary');
-const Schema = mongoose.Schema;
 const adminSchema = require('./data/models/admin');
-const express = require('express');
-const app = express();
 const url =
   'mongodb://mo1097_happy:Happy1@mongo40.mydevil.net:27017/mo1097_happy';
-
-// cloudinary.config({
-//   cloud_name: process.env.cloudName,
-//   api_key: process.env.apiKey,
-//   api_secret: process.env.apiSecret
-// });
-
-// const storage = cloudinaryStorage({
-//   cloudinary: cloudinary,
-//   folder: "images",
-//   allowedFormats: ["jpg", "png"],
-//   transformation: [{width: 500, height: 500, crop: "limit"}]
-// });
-// const parser = multer({storage: storage});
-
-// mongoose.connect(url);
-
-// const Item = new ItemSchema({img: {data: Buffer, contentType: String}});
-// const Item = mongoose.model('Images', ItemSchema);
-
-// app.use(
-//   multer({
-//     dest: './uploads/',
-//     rename: function(fieldname, filename) {
-//       return filename;
-//     }
-//   })
-// );
 
 const appRouter = app => {
   app.all('/*', (req, res, next) => {
@@ -73,21 +39,6 @@ const appRouter = app => {
     .route('/news')
     .get((req, res) => {
       const admin = res.admin;
-
-      // if (!admin.news) {
-      //   console.log('!admin');
-      //   // const newAdmin = new admin({
-      //   //   usr: 'happyfiit',
-      //   //   news: []
-      //   // });
-      //   // newAdmin.save(err => {
-      //   //   if (err) return handleError(err);
-      //   // });
-      //   // res.status(200).send(newAdmin);
-      // } else {
-      //   console.log('jest admin');
-      //   res.status(200).send(res.admin);
-      // }
 
       admin.findOne({usr: 'happyfiit'}).exec((err, resp) => {
         if (err) {
