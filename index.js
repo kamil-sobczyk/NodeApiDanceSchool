@@ -3,10 +3,10 @@ const multer = require('multer');
 const cloudinary = require('cloudinary');
 const cloudinaryStorage = require('multer-storage-cloudinary');
 const Schema = mongoose.Schema;
-const articleSchema = require('./data/models/article');
+const adminSchema = require('./data/models/admin');
 const express = require('express');
 const app = express();
-const mongoUrl =
+const url =
   'mongodb://mo1097_happy:Happy1@mongo40.mydevil.net:27017/mo1097_happy';
 
 // cloudinary.config({
@@ -22,8 +22,6 @@ const mongoUrl =
 //   transformation: [{width: 500, height: 500, crop: "limit"}]
 // });
 // const parser = multer({storage: storage});
-
-const url = mongoUrl;
 
 // mongoose.connect(url);
 
@@ -42,13 +40,14 @@ const url = mongoUrl;
 const appRouter = app => {
   app.all('/*', (req, res, next) => {
     mongoose.connect(url, {
-      useNewUrlParser: true
+      useNewUrlParser: true,
+      useUnifiedTopology: true
     });
     const db = mongoose.connection;
-    const articleModel = mongoose.model('articles', articleSchema);
+    const adminModel = mongoose.model('admin', adminSchema);
     db.on('error', console.error.bind(console, 'connection error:'));
     db.once('open', () => {
-      res.news = articleModel;
+      res.admin = adminModel;
       res.db = db;
       next();
     });
@@ -73,35 +72,54 @@ const appRouter = app => {
   app
     .route('/news')
     .get((req, res) => {
-      const news = res.news;
+      const admin = res.admin;
 
-      if (!news) {
-        const newNews = new articles({
-          header: '',
-          content: '',
-          date: ''
-        });
-        newNews.save(err => {
-          if (err) return handleError(err);
-        });
-        res.status(200).send(newNews);
-      } else {
-        news.exec((err, resp) => {
-          if (err) {
-            console.log('error ', err);
-            res.status(500);
-            return;
-          }
-          res.status(200).send(res.news);
-        });
-      }
+      // if (!admin.news) {
+      //   console.log('!admin');
+      //   // const newAdmin = new admin({
+      //   //   usr: 'happyfiit',
+      //   //   news: []
+      //   // });
+      //   // newAdmin.save(err => {
+      //   //   if (err) return handleError(err);
+      //   // });
+      //   // res.status(200).send(newAdmin);
+      // } else {
+      //   console.log('jest admin');
+      //   res.status(200).send(res.admin);
+      // }
+
+      admin.findOne({usr: 'happyfiit'}).exec((err, resp) => {
+        if (err) {
+          console.log('error ', err);
+          res.status(500);
+          return;
+        }
+        if (!resp) {
+          console.log('!admin');
+          const newAdmin = new admin({
+            usr: 'happyfiit',
+            news: []
+          });
+          newAdmin.save(err => {
+            if (err) return handleError(err);
+          });
+          res.status(200).send(newAdmin);
+        } else {
+          res.status(200).send(resp);
+        }
+      });
     })
     .post((req, res) => {
-      const news = res.news;
-      console.log('req', req.body);
+      const admin = res.admin;
+      console.log('req body', req.body);
       const {newPost} = req.body;
-      news
-        .findOneAndUpdate({$push: {news: newPost}}, {useFindAndModify: false})
+      admin
+        .findOneAndUpdate(
+          {usr: 'happyfiit'},
+          {$push: {news: newPost}},
+          {useFindAndModify: false}
+        )
         .exec((err, resp) => {
           if (err) {
             console.log('error ', err);
