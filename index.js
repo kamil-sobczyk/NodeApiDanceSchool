@@ -63,7 +63,6 @@ const appRouter = app => {
     })
     .post((req, res) => {
       const admin = res.admin;
-      console.log('req body', req.body);
       const {newPost} = req.body;
       admin
         .findOneAndUpdate(
@@ -81,15 +80,60 @@ const appRouter = app => {
 
       res.status(200).send({});
     })
-    .put((req, res) => {})
-    .delete((req, res) => {});
+    .put((req, res) => {
+      const admin = res.admin;
+      const {oldPost, newPost} = req.body;
 
-  app.route('/api/images').post((req, res) => {
-    const newItem = new Item();
-    newItem.img.data = fs.readFileSync(req.files.userPhoto.path);
-    newItem.img.contentType = 'image/png';
-    newItem.save();
-  });
+      console.log(oldPost);
+      console.log(newPost);
+
+      admin.updateOne(
+        {usr: 'happyfiit', 'news.header': oldPost.header},
+        {
+          $set: {
+            'news.$.header': newPost.header,
+            'news.$.content': newPost.content,
+            'news.$.date': newPost.date
+          }
+        },
+        (err, data) => {
+          if (err) {
+            console.log('error ', err);
+            res.status(500);
+            return;
+          }
+        }
+      );
+      res.status(200).send({});
+    })
+    .delete((req, res) => {
+      const admin = res.admin;
+      const {postToDelete} = req.body;
+
+      console.log(req.body);
+      console.log(postToDelete);
+
+      admin
+        .updateOne(
+          {usr: 'happyfiit'},
+          {
+            $pull: {
+              news: {
+                header: postToDelete.header,
+                date: postToDelete.date
+              }
+            }
+          }
+        )
+        .exec((err, resp) => {
+          if (err) {
+            console.log('error ', err);
+            res.status(500);
+            return;
+          }
+        });
+      res.status(200).send({});
+    });
 };
 
 module.exports = appRouter;
