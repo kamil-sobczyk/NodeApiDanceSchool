@@ -1,7 +1,25 @@
+const express = require('express');
+const app = express();
+const fs = require('fs');
+
 const mongoose = require('mongoose');
 const adminSchema = require('./data/models/admin');
 const url =
-  'mongodb://mo1097_happy:Happy1@mongo40.mydevil.net:27017/mo1097_happy';
+  'mongodb://mo1185_happy:Biurohappyfiit12@mongo44.mydevil.net:27017/mo1185_happy';
+
+const multer = require('multer');
+const storage = multer.diskStorage({
+  destination: function(req, file, cb) {
+    cb(null, 'public');
+  },
+  filename: function(req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+const upload = multer({ storage: storage }).array('file');
+
+const publicDir = require('path').join(__dirname, '/public');
+app.use(express.static(publicDir));
 
 const appRouter = app => {
   app.all('/*', (req, res, next) => {
@@ -40,7 +58,7 @@ const appRouter = app => {
     .get((req, res) => {
       const admin = res.admin;
 
-      admin.findOne({usr: 'happyfiit'}).exec((err, resp) => {
+      admin.findOne({ usr: 'happyfiit' }).exec((err, resp) => {
         if (err) {
           console.log('error ', err);
           res.status(500);
@@ -63,12 +81,13 @@ const appRouter = app => {
     })
     .post((req, res) => {
       const admin = res.admin;
-      const {newPost} = req.body;
+      const { newPost } = req.body;
+      console.log('newpost', JSON.stringify(newPost));
       admin
         .findOneAndUpdate(
-          {usr: 'happyfiit'},
-          {$push: {news: newPost}},
-          {useFindAndModify: false}
+          { usr: 'happyfiit' },
+          { $push: { news: newPost } },
+          { useFindAndModify: false }
         )
         .exec((err, resp) => {
           if (err) {
@@ -82,13 +101,13 @@ const appRouter = app => {
     })
     .put((req, res) => {
       const admin = res.admin;
-      const {oldPost, newPost} = req.body;
+      const { oldPost, newPost } = req.body;
 
-      console.log(oldPost);
-      console.log(newPost);
+      console.log('oldPost', oldPost);
+      console.log('newPost', newPost);
 
       admin.updateOne(
-        {usr: 'happyfiit', 'news.header': oldPost.header},
+        { usr: 'happyfiit', 'news.header': oldPost.header },
         {
           $set: {
             'news.$.header': newPost.header,
@@ -108,14 +127,14 @@ const appRouter = app => {
     })
     .delete((req, res) => {
       const admin = res.admin;
-      const {postToDelete} = req.body;
+      const { postToDelete } = req.body;
 
-      console.log(req.body);
-      console.log(postToDelete);
+      console.log('delete - req-body', req.body);
+      console.log('delete - post to delete', postToDelete);
 
       admin
         .updateOne(
-          {usr: 'happyfiit'},
+          { usr: 'happyfiit' },
           {
             $pull: {
               news: {
@@ -133,6 +152,36 @@ const appRouter = app => {
           }
         });
       res.status(200).send({});
+    });
+  app
+    .route('/upload')
+    .post((req, res) => {
+      console.log('req', req);
+      upload(req, res, function(err) {
+        console.log('req.file', req.file);
+        if (err instanceof multer.MulterError) {
+          console.log('instance', err);
+          return res.status(500).json(err);
+        } else if (err) {
+          console.log('err', err);
+          return res.status(500).json(err);
+        }
+        // console.log('req oldname', req);
+
+        console.log('req', req.files);
+        return res.status(200).send(req.files);
+      });
+    })
+    .get((req, res) => {
+      const date = req.query.date;
+      // console.log('req.pa', req.query.date);
+      fs.readFile(`public/${date}.jpg`, function(err, data) {
+        if (err) throw err; // Fail if the file can't be read.
+        var contentType = 'image/png';
+        var base64 = Buffer.from(data).toString('base64');
+        base64 = 'data:image/png;base64,' + base64;
+        res.send(base64);
+      });
     });
 };
 
